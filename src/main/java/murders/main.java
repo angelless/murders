@@ -1,7 +1,9 @@
 package murders;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
@@ -11,6 +13,7 @@ import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.Listener;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
+import cn.nukkit.event.player.PlayerDeathEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.Position;
@@ -22,7 +25,7 @@ public class main extends PluginBase implements Listener {
 	public static Set<Position> gameSpawns = new HashSet<>();
 	public static Player murder;
 	public static Player hero;
-
+	public static List<Player> players = new ArrayList<>();
 	@Override
 	public void onEnable() {
 		this.getLogger().info(TextFormat.colorize("&6Let's Play murder!"));
@@ -54,6 +57,7 @@ public class main extends PluginBase implements Listener {
 			start();
 		}
 		Server.getInstance().getOnlinePlayers().values().forEach((Player player) -> {
+			main.players.add(player);
 			Position pos = (Position) main.gameSpawns.toArray()[main.rand(1, main.gameSpawns.size() - 1)];
 			player.teleport(pos);
 		});
@@ -101,7 +105,19 @@ public class main extends PluginBase implements Listener {
 			}
 		}
 	}
-
+	@EventHandler
+	public void onDeath(PlayerDeathEvent event){
+		if(event.getEntity().getName().equals(main.murder.getName())){
+			this.stop(0);
+			return;
+		}
+		if(event.getEntity().getName().equals(main.hero.getName())){
+			main.players.remove(event.getEntity());
+			if(main.players.size()<1){
+				this.stop(1);
+			}
+		}
+	}
 	public static int rand(int min, int max) {
 		return new Random().nextInt(max - min + 1) + min;
 	}
