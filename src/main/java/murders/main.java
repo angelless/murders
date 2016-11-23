@@ -92,29 +92,36 @@ public class main extends PluginBase implements Listener {
 		if (event instanceof EntityDamageByEntityEvent) {
 			EntityDamageByEntityEvent event1 = (EntityDamageByEntityEvent) event;
 			if (event1.getDamager() instanceof Player && event1.getEntity() instanceof Player) {
-				if (event1.getDamager().equals(main.murder) && !event1.getEntity().equals(main.hero)) {
+				
+				if (event1.getDamager().equals(main.murder)) {
 					event1.getEntity().attack(30);
 					((Player)event1.getEntity()).sendMessage(TextFormat.colorize("&c[사망] &4당신은 머더러에게 사냥당하셨씁닌다"));
 					return;
-				}else if(!event1.getDamager().equals(main.hero)){
+				}else if(event1.getDamager().equals(main.hero)&&!event1.getEntity().equals(main.murder)){
+					event1.getEntity().attack(30);
+					((Player)event1.getEntity()).sendMessage(TextFormat.colorize("&c[사망] &4당신은 생존팀에게 사망당하셨습니다"));
+					return;
+				}else{
 					event1.setCancelled();
 					event.setCancelled();
-					return;
-					
 				}
 			}
 		}
 	}
 	@EventHandler
 	public void onDeath(PlayerDeathEvent event){
+		event.setDeathMessage("");
 		if(event.getEntity().getName().equals(main.murder.getName())){
 			this.stop(0);
 			return;
 		}
-		if(event.getEntity().getName().equals(main.hero.getName())){
+		if(main.players.contains(event.getEntity())){
 			main.players.remove(event.getEntity());
 			if(main.players.size()<1){
 				this.stop(1);
+			}
+			if(event.getEntity().getName().equals(main.hero)){
+				main.players.get(main.rand(1, main.players.size()-1));
 			}
 		}
 	}
