@@ -15,6 +15,7 @@ import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.player.PlayerDeathEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
+import cn.nukkit.event.player.PlayerQuitEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.Position;
 import cn.nukkit.plugin.PluginBase;
@@ -26,6 +27,7 @@ public class main extends PluginBase implements Listener {
 	public static Player murder;
 	public static Player hero;
 	public static List<Player> players = new ArrayList<>();
+
 	@Override
 	public void onEnable() {
 		this.getLogger().info(TextFormat.colorize("&6Let's Play murder!"));
@@ -92,39 +94,58 @@ public class main extends PluginBase implements Listener {
 		if (event instanceof EntityDamageByEntityEvent) {
 			EntityDamageByEntityEvent event1 = (EntityDamageByEntityEvent) event;
 			if (event1.getDamager() instanceof Player && event1.getEntity() instanceof Player) {
-				
+
 				if (event1.getDamager().equals(main.murder)) {
 					event1.getEntity().attack(30);
-					((Player)event1.getEntity()).sendMessage(TextFormat.colorize("&c[사망] &4당신은 머더러에게 사냥당하셨씁닌다"));
+					((Player) event1.getEntity()).sendMessage(TextFormat.colorize("&c[사망] &4당신은 머더러에게 사냥당하셨씁닌다"));
 					return;
-				}else if(event1.getDamager().equals(main.hero)&&!event1.getEntity().equals(main.murder)){
+				} else if (event1.getDamager().equals(main.hero) && !event1.getEntity().equals(main.murder)) {
 					event1.getEntity().attack(30);
-					((Player)event1.getEntity()).sendMessage(TextFormat.colorize("&c[사망] &4당신은 생존팀에게 사망당하셨습니다"));
+					((Player) event1.getEntity()).sendMessage(TextFormat.colorize("&c[사망] &4당신은 히어로에게 사망당하셨습니다"));
 					return;
-				}else{
+				} else {
 					event1.setCancelled();
 					event.setCancelled();
 				}
 			}
 		}
 	}
+
 	@EventHandler
-	public void onDeath(PlayerDeathEvent event){
+	public void onDeath(PlayerDeathEvent event) {
 		event.setDeathMessage("");
-		if(event.getEntity().getName().equals(main.murder.getName())){
+		if (event.getEntity().getName().equals(main.murder.getName())) {
 			this.stop(0);
 			return;
 		}
-		if(main.players.contains(event.getEntity())){
+		if (main.players.contains(event.getEntity())) {
 			main.players.remove(event.getEntity());
-			if(main.players.size()<1){
+			if (main.players.size() < 1) {
 				this.stop(1);
 			}
-			if(event.getEntity().getName().equals(main.hero)){
-				main.players.get(main.rand(1, main.players.size()-1));
+			if (event.getEntity().getName().equals(main.hero.getName())) {
+				main.players.get(main.rand(1, main.players.size() - 1));
 			}
 		}
 	}
+
+	@EventHandler
+	public void onQuit(PlayerQuitEvent event) {
+		if (event.getPlayer().getName().equals(murder.getName())) {
+			this.stop(1);
+
+			if (main.players.contains(event.getPlayer())) {
+				main.players.remove(event.getPlayer());
+				if (main.players.size() < 1) {
+					this.stop(1);
+				}
+				if (event.getPlayer().getName().equals(main.hero.getName())) {
+					main.players.get(main.rand(1, main.players.size() - 1));
+				}
+			}
+		}
+	}
+
 	public static int rand(int min, int max) {
 		return new Random().nextInt(max - min + 1) + min;
 	}
